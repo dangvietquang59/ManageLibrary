@@ -3,9 +3,15 @@ import {Image, TouchableOpacity, View, TextInput} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import {useState} from 'react';
 
-function SearchHeader() {
+function SearchHeader({setSearchKey}) {
   const navigation = useNavigation();
-  const [searchKey, setSearchKey] = useState('');
+  const [localSearchKey, setLocalSearchKey] = useState('');
+
+  const handleSearchChange = text => {
+    setLocalSearchKey(text);
+    setSearchKey(text);
+  };
+
   return (
     <View style={{backgroundColor: '#141414'}}>
       <View style={{flexDirection: 'row', marginTop: 10, alignItems: 'center'}}>
@@ -23,10 +29,10 @@ function SearchHeader() {
             borderColor: '#ccc',
             borderRadius: 8,
             paddingLeft: 10,
-            color: '#Fff',
+            color: '#fff',
           }}
-          value={searchKey}
-          onChangeText={text => setSearchKey(text)}
+          value={localSearchKey}
+          onChangeText={handleSearchChange}
           placeholderTextColor={'#ccc'}
         />
       </View>

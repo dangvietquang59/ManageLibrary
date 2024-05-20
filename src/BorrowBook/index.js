@@ -1,33 +1,51 @@
 import React, {useState} from 'react';
-import {Button, Image, TextInput, View} from 'react-native';
+import {Alert, Button, Image, ScrollView, TextInput, View} from 'react-native';
 import {Text} from 'react-native-paper';
 import MyButton from '../../components/Button';
 import DateTimePickerModal from '@react-native-community/datetimepicker';
 import HeaderNavigation from '../../components/HeaderNavigation';
+import useUserStore from '../../store/userStore';
+import {borrowBooks} from '../../utils/api/Book';
+import {useNavigation} from '@react-navigation/native';
 
 function BorrowBook({route}) {
-  const {title, author, category, imageUrl} = route.params;
-
-  const [name, setName] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [address, setAddress] = useState('');
-  const [email, setEmail] = useState('');
+  const {bookId, bookName, bookGenre, bookImage, bookAuthor} = route.params;
+  const user = useUserStore(state => state.user);
 
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const [pickedDate, setPickedDate] = useState(new Date());
 
+  const navigation = useNavigation();
   const showDatePicker = () => {
-    setDatePickerVisibility(true);
-  };
-
-  const hideDatePicker = () => {
-    setDatePickerVisibility(false);
+    setDatePickerVisibility(!isDatePickerVisible);
   };
 
   const handleConfirm = date => {
-    console.warn('A date has been picked: ', date);
-    setPickedDate(date);
-    hideDatePicker();
+    if (date) {
+      console.warn('A date has been picked: ', date);
+      setPickedDate(date);
+      showDatePicker();
+    }
+  };
+
+  const handleBorrow = async () => {
+    const data = {
+      bookId: bookId,
+      userId: user?._id,
+      returnDate: pickedDate,
+    };
+
+    try {
+      const borrow = await borrowBooks(data, user?.accessToken);
+      console.log(borrow);
+      if (borrow === 201) {
+        Alert.alert(
+          'Borrow book',
+          'Successful loan; please wait for the librarian to accept',
+        );
+        navigation.navigate('Books');
+      }
+    } catch (error) {}
   };
 
   return (
@@ -38,7 +56,7 @@ function BorrowBook({route}) {
         justifyContent: 'space-between',
       }}>
       <HeaderNavigation titleHeader={'Borrow book'} />
-      <View>
+      <ScrollView>
         {/* book info */}
         <View style={{marginTop: 10, minHeight: 250}}>
           <Text
@@ -52,7 +70,7 @@ function BorrowBook({route}) {
           </Text>
           <View style={{flexDirection: 'row'}}>
             <Image
-              source={imageUrl}
+              source={{uri: bookImage}}
               style={{
                 width: 150,
                 height: 250,
@@ -64,6 +82,7 @@ function BorrowBook({route}) {
               style={{
                 marginTop: 10,
                 marginLeft: 10,
+                width: '70%',
               }}>
               <Text
                 style={{
@@ -72,20 +91,21 @@ function BorrowBook({route}) {
                   fontWeight: 700,
                   marginBottom: 10,
                 }}>
-                {title}
+                {bookName}
               </Text>
               <Text
                 style={{
                   fontSize: 16,
                   color: '#ccc',
                   fontWeight: 700,
+                  maxWidth: '50%',
                   marginBottom: 10,
                   padding: 10,
                   backgroundColor: 'rgba(111, 101, 252,0.7)',
                   textAlign: 'center',
                   borderRadius: 8,
                 }}>
-                {category}
+                {bookGenre}
               </Text>
               <Text
                 style={{
@@ -94,109 +114,83 @@ function BorrowBook({route}) {
                   fontWeight: 700,
                   marginBottom: 10,
                 }}>
-                {author}
+                {bookAuthor}
               </Text>
             </View>
           </View>
         </View>
         {/* form borrow book */}
         <View>
-          <Text style={{fontSize: 18, fontWeight: 'bold', color: '#fff'}}>
+          <Text
+            style={{
+              fontSize: 18,
+              fontWeight: 'bold',
+              color: '#fff',
+              marginTop: 10,
+            }}>
             Borrower information
           </Text>
-          <Text
-            style={{
-              fontSize: 16,
-              fontWeight: 'bold',
-              color: '#ccc',
-              marginTop: 10,
-              marginBottom: 10,
-            }}>
-            Full Name
-          </Text>
-          <TextInput
-            style={{
-              borderWidth: 1,
-              borderColor: '#ccc',
-              borderRadius: 8,
-              color: '#fff',
-            }}
-            placeholder="Nguyễn Văn A"
-            placeholderTextColor={'#ccc'}
-            value={name}
-            onChangeText={text => setName(text)}
-          />
 
-          <Text
-            style={{
-              fontSize: 16,
-              fontWeight: 'bold',
-              color: '#ccc',
-              marginTop: 10,
-              marginBottom: 10,
-            }}>
-            Phone Number
-          </Text>
-          <TextInput
-            style={{
-              borderWidth: 1,
-              borderColor: '#ccc',
-              borderRadius: 8,
-              color: '#fff',
-            }}
-            placeholder="01239929399"
-            placeholderTextColor={'#ccc'}
-            value={phoneNumber}
-            onChangeText={text => setPhoneNumber(text)}
-            keyboardType="numeric"
-          />
-
-          <Text
-            style={{
-              fontSize: 16,
-              fontWeight: 'bold',
-              color: '#ccc',
-              marginTop: 10,
-              marginBottom: 10,
-            }}>
-            Address
-          </Text>
-          <TextInput
-            style={{
-              borderWidth: 1,
-              borderColor: '#ccc',
-              borderRadius: 8,
-              color: '#fff',
-            }}
-            placeholder="khu phố A, Dĩ An, Bình Dương"
-            placeholderTextColor={'#ccc'}
-            value={address}
-            onChangeText={text => setAddress(text)}
-          />
-
-          <Text
-            style={{
-              fontSize: 16,
-              fontWeight: 'bold',
-              color: '#ccc',
-              marginTop: 10,
-              marginBottom: 10,
-            }}>
-            Email
-          </Text>
-          <TextInput
-            style={{
-              borderWidth: 1,
-              borderColor: '#ccc',
-              borderRadius: 8,
-              color: '#fff',
-            }}
-            placeholder="example@gmail.com"
-            placeholderTextColor={'#ccc'}
-            value={email}
-            onChangeText={text => setEmail(text)}
-          />
-
+          <View
+            style={{flexDirection: 'row', alignItems: 'center', marginTop: 10}}>
+            <Text style={{fontSize: 16, fontWeight: 700, color: '#ccc'}}>
+              Full name:
+            </Text>
+            <Text
+              style={{
+                fontSize: 16,
+                fontWeight: 700,
+                color: '#ccc',
+                marginLeft: 10,
+              }}>
+              {user.fullName}
+            </Text>
+          </View>
+          <View
+            style={{flexDirection: 'row', alignItems: 'center', marginTop: 10}}>
+            <Text style={{fontSize: 16, fontWeight: 700, color: '#ccc'}}>
+              Email:
+            </Text>
+            <Text
+              style={{
+                fontSize: 16,
+                fontWeight: 700,
+                color: '#ccc',
+                marginLeft: 10,
+              }}>
+              {user.email}
+            </Text>
+          </View>
+          <View
+            style={{flexDirection: 'row', alignItems: 'center', marginTop: 10}}>
+            <Text style={{fontSize: 16, fontWeight: 700, color: '#ccc'}}>
+              Phone number:
+            </Text>
+            <Text
+              style={{
+                fontSize: 16,
+                fontWeight: 700,
+                color: '#ccc',
+                marginLeft: 10,
+              }}>
+              {user.phoneNumber}
+            </Text>
+          </View>
+          <View
+            style={{flexDirection: 'row', alignItems: 'center', marginTop: 10}}>
+            <Text style={{fontSize: 16, fontWeight: 700, color: '#ccc'}}>
+              Address:
+            </Text>
+            <Text
+              style={{
+                fontSize: 16,
+                fontWeight: 700,
+                color: '#ccc',
+                marginLeft: 10,
+              }}>
+              {user.address}
+            </Text>
+          </View>
           {/* pick date and time */}
           <Text
             style={{
@@ -206,24 +200,32 @@ function BorrowBook({route}) {
               marginTop: 10,
               marginBottom: 10,
             }}>
-            Pick Date and Time
+            Payment deadline:
+          </Text>
+          <Text
+            style={{
+              color: '#ccc',
+              fontSize: 16,
+              fontWeight: 'bold',
+              marginBottom: 10,
+            }}>
+            {pickedDate.toString()}
           </Text>
           <Button title="Pick Date and Time" onPress={showDatePicker} />
-          <Text>{pickedDate.toString()}</Text>
           {isDatePickerVisible && (
             <DateTimePickerModal
               value={pickedDate}
               mode="datetime"
               display="spinner"
-              onChange={(event, selectedDate) => {
-                handleConfirm(selectedDate || pickedDate);
+              onChange={(event, pickedDate) => {
+                handleConfirm(pickedDate);
               }}
             />
           )}
         </View>
-      </View>
+      </ScrollView>
       <View>
-        <MyButton titleBtn={'Confirm Borrow'} />
+        <MyButton titleBtn={'Confirm Borrow'} onClick={() => handleBorrow()} />
       </View>
     </View>
   );

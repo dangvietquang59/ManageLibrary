@@ -1,7 +1,7 @@
 import {Image, Text, TouchableOpacity, View} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 
-function BookItem({name, description, author, type, img}) {
+function BookItem({bookInfo}) {
   const navigation = useNavigation();
 
   return (
@@ -11,8 +11,20 @@ function BookItem({name, description, author, type, img}) {
         marginTop: 10,
         flexDirection: 'row',
       }}
-      onPress={() => navigation.navigate('DetailsBook')}>
-      <Image source={img} style={{width: 100, height: 150, borderRadius: 5}} />
+      onPress={() =>
+        navigation.navigate('DetailsBook', {
+          bookId: bookInfo._id,
+          bookName: bookInfo.Title,
+          bookAuthor: bookInfo.Author,
+          bookImage: bookInfo.Image,
+          bookSummary: bookInfo.Summary,
+          bookGenre: bookInfo.Genre,
+        })
+      }>
+      <Image
+        source={{uri: bookInfo.Image}}
+        style={{width: 100, height: 150, borderRadius: 5}}
+      />
       <View
         style={{
           marginLeft: 20,
@@ -21,8 +33,10 @@ function BookItem({name, description, author, type, img}) {
           flexShrink: 1,
         }}>
         <View style={{maxWidth: '100%'}}>
-          <Text style={{fontSize: 20, fontWeight: 700, color: '#fff'}}>
-            {name}
+          <Text
+            style={{fontSize: 20, fontWeight: 700, color: '#fff'}}
+            numberOfLines={1}>
+            {bookInfo.Title}
           </Text>
         </View>
         {/* type of book */}
@@ -40,12 +54,14 @@ function BookItem({name, description, author, type, img}) {
                 fontWeight: 700,
                 fontSize: 16,
               }}>
-              {type}
+              {bookInfo.Genre}
             </Text>
           </View>
         </View>
         {/* description of book */}
-        <Text style={{marginTop: 5, color: '#fff'}}>{description}</Text>
+        <Text style={{marginTop: 5, color: '#fff'}} numberOfLines={4}>
+          {bookInfo.Summary}
+        </Text>
 
         <Text
           style={{
@@ -54,7 +70,7 @@ function BookItem({name, description, author, type, img}) {
             fontStyle: 'italic',
             color: '#666',
           }}>
-          {author}
+          {bookInfo.Author}
         </Text>
       </View>
     </TouchableOpacity>

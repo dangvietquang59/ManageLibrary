@@ -1,19 +1,31 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {View, Text, ScrollView} from 'react-native';
 import BookItem from '../../components/BookItem';
-import sach1 from '../../assets/img/book/sach-1.jpg';
-
 import {Divider} from 'react-native-paper';
-import BookItemHoiontal from '../../components/BookItem/BookItemHorizontal';
+import BookItemHorizontal from '../../components/BookItem/BookItemHorizontal';
 import NavigationComponent from '../../components/Navigation';
 import Poster from '../../components/Poster/Index';
 import Header from '../../components/Header';
+import {getBooks} from '../../utils/api/Book';
+import useBookStore from '../../store/bookStore';
 
 const Books = () => {
+  const setBooks = useBookStore(state => state.setBooks);
+  const books = useBookStore(state => state.books);
+  useEffect(() => {
+    const fetchBooks = async () => {
+      const bookData = await getBooks();
+      setBooks(bookData);
+    };
+
+    fetchBooks();
+  }, [setBooks]);
+
   return (
     <View style={{flex: 1, backgroundColor: '#141414'}}>
       <Header />
       <ScrollView>
+        {/* poster */}
         <ScrollView horizontal style={{height: 300}}>
           <Poster />
           <Poster />
@@ -23,80 +35,44 @@ const Books = () => {
           <Text
             style={{
               fontSize: 20,
-              fontWeight: 700,
-              color: '#000',
-              marginTop: 10,
+              fontWeight: '700',
               color: '#fff',
+              marginTop: 10,
             }}>
             Latest Update
           </Text>
           {/* book list latest update */}
           <View>
-            <BookItem
-              name={'Nguồn gốc các loài'}
-              type={'Khoa học'}
-              description={
-                '12 cuốn sách khoa học giúp bạn hiểu thêm về thế giới'
-              }
-              author={'Charles Darwins'}
-              img={sach1}
-            />
-            <Divider style={{marginTop: 10, marginBottom: 10, height: 1}} />
-            <BookItem
-              name={'Nguồn gốc các loài'}
-              type={'Khoa học'}
-              description={
-                '12 cuốn sách khoa học giúp bạn hiểu thêm về thế giới'
-              }
-              author={'Charles Darwins'}
-              img={sach1}
-            />
-            <Divider style={{marginTop: 10, marginBottom: 10, height: 1}} />
+            {books &&
+              books.map(book => (
+                <View key={book._id}>
+                  <BookItem bookInfo={book} />
+                  <Divider
+                    style={{marginTop: 10, marginBottom: 10, height: 1}}
+                  />
+                </View>
+              ))}
           </View>
           {/* book horizontal */}
           <Text
             style={{
               fontSize: 20,
-              fontWeight: 700,
-              color: '#000',
-              marginTop: 10,
+              fontWeight: '700',
               color: '#fff',
+              marginTop: 10,
               marginBottom: 10,
             }}>
-            New books
-          </Text>
-          <ScrollView horizontal style={{}}>
-            <BookItemHoiontal />
-            <BookItemHoiontal />
-            <BookItemHoiontal />
-            <BookItemHoiontal />
-            <BookItemHoiontal />
-            <BookItemHoiontal />
-          </ScrollView>
-          <Text
-            style={{
-              fontSize: 20,
-              fontWeight: 700,
-              color: '#000',
-              marginTop: 10,
-              color: '#fff',
-              marginBottom: 10,
-            }}>
-            New books
+            New Books
           </Text>
           <ScrollView horizontal>
-            <BookItemHoiontal />
-            <BookItemHoiontal />
-            <BookItemHoiontal />
-            <BookItemHoiontal />
-            <BookItemHoiontal />
-            <BookItemHoiontal />
-            <BookItemHoiontal />
-            <BookItemHoiontal />
-            <BookItemHoiontal />
-            <BookItemHoiontal />
-            <BookItemHoiontal />
-            <BookItemHoiontal />
+            {books &&
+              books.map(book => (
+                <BookItemHorizontal
+                  nameBook={book.Title}
+                  img={book.Image}
+                  key={book._id}
+                />
+              ))}
           </ScrollView>
         </View>
       </ScrollView>

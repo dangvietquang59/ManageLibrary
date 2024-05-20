@@ -2,8 +2,10 @@ import {Image, Text, TouchableOpacity, View} from 'react-native';
 import searchIcon from '../../assets/img/search-icon.jpg';
 import avatar from '../../assets/img/book/book2.jpg';
 import {useNavigation} from '@react-navigation/native';
+import useUserStore from '../../store/userStore';
 function Header() {
   const navigation = useNavigation();
+  const user = useUserStore(state => state.user);
   return (
     <View
       style={{
@@ -14,7 +16,9 @@ function Header() {
       }}>
       <View style={{flexDirection: 'row', alignItems: 'center'}}>
         <Image
-          source={avatar}
+          source={{
+            uri: 'https://www.dexerto.com/cdn-cgi/image/width=3840,quality=60,format=auto/https://editors.dexerto.com/wp-content/uploads/2023/09/21/jujutsu-kaisen-anime-gojo-sealed.jpeg',
+          }}
           style={{width: 50, height: 50, borderRadius: 100}}
         />
         <Text
@@ -24,7 +28,7 @@ function Header() {
             fontWeight: 700,
             marginLeft: 10,
           }}>
-          Trần Thành Nam
+          {user?.fullName || `user ${user?._id}`}
         </Text>
       </View>
       <TouchableOpacity onPress={() => navigation.navigate('Search')}>

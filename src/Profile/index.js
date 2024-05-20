@@ -1,11 +1,62 @@
-import {Image, Text, TouchableOpacity, View} from 'react-native';
+import React, {useState, useEffect} from 'react';
+import {Image, Text, TextInput, TouchableOpacity, View} from 'react-native';
+import {Modal, Portal} from 'react-native-paper';
 import HeaderNavigation from '../../components/HeaderNavigation';
 import email from '../../assets/img/icon/email-removebg-preview.png';
 import address from '../../assets/img/icon/address-removebg-preview.png';
 import phoneNumber from '../../assets/img/icon/phone-number-removebg-preview.png';
-import {Divider} from 'react-native-paper';
+import MyButton from '../../components/Button';
+import {updateProfile} from '../../utils/api/Profile';
+import useUserStore from '../../store/userStore';
+import {logoutUser} from '../../utils/api/Authentication';
+import ButtonProfile from '../../components/ButtonProfile';
+import {useNavigation} from '@react-navigation/native';
 
 function Profile() {
+  const {user, setUser, logout} = useUserStore();
+
+  const [isOpen, setIsOpen] = useState(false);
+
+  const [fullNameInput, setFullNameInput] = useState('');
+  const [phoneNumberInput, setPhoneNumberInput] = useState('');
+  const [addressInput, setAddressInput] = useState('');
+
+  const navigation = useNavigation();
+
+  useEffect(() => {
+    setFullNameInput(user?.name || '');
+    setPhoneNumberInput(user?.phoneNumber || '');
+    setAddressInput(user?.address || '');
+  }, [user]);
+
+  const handleLogout = async () => {
+    try {
+      const isLoggedOut = await logoutUser();
+      console.log(isLoggedOut);
+      if (isLoggedOut === 200) {
+        logout();
+        navigation.navigate('Login');
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+  const handleEditProfile = async () => {
+    const profile = {
+      phoneNumber: phoneNumberInput,
+      address: addressInput,
+      fullName: fullNameInput,
+      userId: user?._id,
+    };
+    try {
+      const updatedProfile = await updateProfile(profile, user?.accessToken);
+      setUser(updatedProfile);
+      setIsOpen(false);
+    } catch (error) {
+      console.error('Error updating profile:', error);
+    }
+  };
+
   return (
     <View style={{flex: 1, backgroundColor: '#141414'}}>
       <HeaderNavigation titleHeader={'Profile'} />
@@ -29,14 +80,26 @@ function Profile() {
           color: '#fff',
           marginTop: 10,
         }}>
-        Tran Thanh Nam
+        {user?.fullName || `user${user?._id}`}
       </Text>
 
       <View style={{marginTop: 20}}>
-        <Text style={{fontSize: 18, fontWeight: 'bold', color: '#fff'}}>
-          Information
-        </Text>
-
+        <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
+          <Text
+            style={{
+              fontSize: 18,
+              fontWeight: 'bold',
+              color: '#fff',
+              padding: 10,
+            }}>
+            Information
+          </Text>
+          <TouchableOpacity
+            style={{padding: 10}}
+            onPress={() => setIsOpen(true)}>
+            <Text style={{fontSize: 18, color: '#ccc'}}>Edit</Text>
+          </TouchableOpacity>
+        </View>
         <View style={{flexDirection: 'row', alignItems: 'center'}}>
           <Image
             source={email}
@@ -49,7 +112,7 @@ function Profile() {
             }}
           />
           <Text style={{fontSize: 16, color: '#ccc', marginLeft: 10}}>
-            Example@gmail.com
+            {user?.email}
           </Text>
         </View>
 
@@ -66,7 +129,7 @@ function Profile() {
             }}
           />
           <Text style={{fontSize: 16, color: '#ccc', marginLeft: 10}}>
-            0123718378
+            {user?.phoneNumber}
           </Text>
         </View>
 
@@ -83,25 +146,106 @@ function Profile() {
             }}
           />
           <Text style={{fontSize: 16, color: '#ccc', marginLeft: 10}}>
-            Example@gmail.com
+            {user?.address}
           </Text>
         </View>
 
-        <View>
-          <TouchableOpacity style={{padding: 20}}>
-            <Text style={{fontSize: 16, color: '#ccc'}}>Book loved</Text>
-          </TouchableOpacity>
-          <Divider />
-          <TouchableOpacity style={{padding: 20}}>
-            <Text style={{fontSize: 16, color: '#ccc'}}>Book borrowed</Text>
-          </TouchableOpacity>
-          <Divider />
-          <TouchableOpacity style={{padding: 20}}>
-            <Text style={{fontSize: 16, color: '#ccc'}}>Sign out</Text>
-          </TouchableOpacity>
-          <Divider />
-        </View>
+        <ButtonProfile titleBtn={'Book loved'} />
+        <ButtonProfile titleBtn={'Book borrowed'} />
+        <ButtonProfile titleBtn={'Sign out'} onClick={() => handleLogout()} />
       </View>
+
+      {/* modal edit profile */}
+      {isOpen && (
+        <Portal>
+          <Modal visible={isOpen} onDismiss={() => setIsOpen(false)}>
+            <View
+              style={{
+                backgroundColor: 'white',
+                padding: 20,
+                height: '90%',
+                backgroundColor: '#141414',
+                justifyContent: 'space-between',
+              }}>
+              <View>
+                <Text
+                  style={{
+                    fontSize: 18,
+                    fontWeight: 'bold',
+                    color: '#fff',
+                    marginTop: 10,
+                    marginBottom: 10,
+                  }}>
+                  Full name
+                </Text>
+                <TextInput
+                  placeholder="Enter your full name"
+                  style={{
+                    borderWidth: 1,
+                    borderRadius: 10,
+                    borderColor: '#ccc',
+                    paddingLeft: 20,
+                    color: '#fff',
+                  }}
+                  value={fullNameInput}
+                  onChangeText={text => setFullNameInput(text)}
+                  placeholderTextColor={'#ccc'}
+                />
+                <Text
+                  style={{
+                    fontSize: 18,
+                    fontWeight: 'bold',
+                    color: '#fff',
+                    marginTop: 10,
+                    marginBottom: 10,
+                  }}>
+                  Phone number
+                </Text>
+                <TextInput
+                  placeholder="Enter your phone number"
+                  style={{
+                    borderWidth: 1,
+                    borderRadius: 10,
+                    borderColor: '#ccc',
+                    paddingLeft: 20,
+                    color: '#fff',
+                  }}
+                  value={phoneNumberInput}
+                  onChangeText={text => setPhoneNumberInput(text)}
+                  placeholderTextColor={'#ccc'}
+                />
+                <Text
+                  style={{
+                    fontSize: 18,
+                    fontWeight: 'bold',
+                    color: '#fff',
+                    marginTop: 10,
+                    marginBottom: 10,
+                  }}>
+                  Address
+                </Text>
+                <TextInput
+                  placeholder="Enter your address"
+                  style={{
+                    borderWidth: 1,
+                    borderRadius: 10,
+                    borderColor: '#ccc',
+                    paddingLeft: 20,
+                    color: '#fff',
+                  }}
+                  value={addressInput}
+                  onChangeText={text => setAddressInput(text)}
+                  placeholderTextColor={'#ccc'}
+                />
+              </View>
+              <MyButton
+                titleBtn={'Submit'}
+                onClick={() => handleEditProfile()}
+              />
+            </View>
+          </Modal>
+        </Portal>
+      )}
     </View>
   );
 }
